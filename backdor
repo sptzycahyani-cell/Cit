@@ -56,3 +56,47 @@ else
         Duration = 5,
     })
 end
+
+-- =========================
+-- Otomatis mencari RemoteEvent untuk pesan masuk
+-- =========================
+
+local messageEventName = nil
+local messageEvent -- variabel global untuk RemoteEvent
+
+-- Cari RemoteEvent yang mungkin digunakan sebagai message handler
+for _, remote in ipairs(game.ReplicatedStorage:GetDescendants()) do
+    if remote:IsA("RemoteEvent") then
+        -- Bisa tambahkan logika kriteria tertentu jika diketahui
+        -- Misalnya nama RemoteEvent mengandung kata tertentu
+        local nameLower = remote.Name:lower()
+        if nameLower:find("message") or nameLower:find("chat") or nameLower:find("notify") then
+            messageEventName = remote.Name
+            messageEvent = remote
+            break
+        end
+    end
+end
+
+-- Jika tidak ditemukan, buat RemoteEvent baru (opsional)
+if not messageEvent then
+    messageEvent = Instance.new("RemoteEvent")
+    messageEvent.Name = "AutoMessageEvent"
+    messageEvent.Parent = game.ReplicatedStorage
+    messageEventName = "AutoMessageEvent"
+end
+
+-- Fungsi untuk kirim message ke server otomatis
+local function sendMessageToServer(message)
+    if messageEvent and messageEvent:IsA("RemoteEvent") then
+        pcall(function()
+            messageEvent:FireServer(message)
+        end)
+    else
+        warn("RemoteEvent untuk pesan tidak ditemukan atau tidak valid.")
+    end
+end
+
+-- Contoh pengiriman pesan otomatis
+local pesan = "Ini adalah pesan otomatis!"
+sendMessageToServer(pesan)
